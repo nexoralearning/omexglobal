@@ -1,0 +1,7 @@
+{
+  "buildCommand": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/grad-hat run build",
+  "outputDirectory": "artifacts/grad-hat/dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
