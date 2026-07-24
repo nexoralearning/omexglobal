@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Animated Graduation Hat"
+version = "1.0.0"
+id = "artifacts/grad-hat"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25968
+
+[services.development]
+run = "pnpm --filter @workspace/grad-hat run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/grad-hat", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/grad-hat/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25968"
+BASE_PATH = "/"
