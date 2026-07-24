@@ -1,113 +1,164 @@
 import { motion } from 'framer-motion';
 
-const GradHat = () => (
-  <svg viewBox="20 75 460 450" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-    {/* Hat body — left face visible below brim */}
-    <path d="M 60 248 L 60 316 L 250 416 L 250 348 Z" fill="white" />
-    {/* Hat body — right face visible below brim */}
-    <path d="M 440 248 L 440 316 L 250 416 L 250 348 Z" fill="white" />
+const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-    {/*
-      Brim (flat mortarboard top) — outer diamond with two parallelogram holes
-      that create the S negative-space letterform.
+// 9 rays fanning 150° upward
+const RAYS = Array.from({ length: 9 }, (_, i) => -75 + i * (150 / 8));
+const SX = 64, SY = 44;
 
-      Hole 1: upper-left region  → top opening of S
-      Hole 2: lower-right region → bottom opening of S
-      The remaining interior becomes the S body.
-    */}
-    <path
-      fillRule="evenodd"
-      fill="white"
-      d={[
-        // Outer diamond brim
-        'M 250 98 L 442 242 L 250 386 L 58 242 Z',
-        // Hole 1 — upper-left (top S opening)
-        'M 250 152 L 104 242 L 192 242 L 250 204 Z',
-        // Hole 2 — lower-right (bottom S opening)
-        'M 250 332 L 396 242 L 308 242 L 250 280 Z',
-      ].join(' ')}
-    />
-
-    {/* Tassel cord from left brim corner */}
-    <line
-      x1="58" y1="242"
-      x2="30" y2="352"
-      stroke="white" strokeWidth="2.8" strokeLinecap="round"
-    />
-    {/* Tassel knot / ball */}
-    <circle cx="30" cy="360" r="7" fill="white" />
-    {/* Tassel hanging strings */}
-    <path
-      d="M 21 367 L 10 412 M 30 368 L 28 414 M 39 367 L 48 412"
-      stroke="white" strokeWidth="2.8" strokeLinecap="round"
-    />
-  </svg>
-);
+function toRad(deg: number) { return (deg * Math.PI) / 180; }
 
 export default function App() {
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        width: '100%',
-        background: '#000',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Subtle ambient glow behind the hat */}
+    <div style={{
+      minHeight: '100dvh',
+      width: '100%',
+      background: '#090909',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      position: 'relative',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
+    }}>
+
+      {/* Ambient glow */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 2 }}
+        transition={{ delay: 1.4, duration: 2.4 }}
         style={{
           position: 'absolute',
-          width: 480,
-          height: 480,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
+          inset: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.045) 0%, transparent 60%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Main hat — Apple-style entrance */}
+      {/* ── Logo lockup: icon + divider + text ── */}
       <motion.div
-        initial={{ opacity: 0, y: 64, scale: 0.72 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 1.45, ease: [0.16, 1, 0.3, 1] }}
-        style={{ width: 380, height: 380 }}
+        initial={{ opacity: 0, y: 36 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.4, ease }}
+        style={{ display: 'flex', alignItems: 'center', gap: 30 }}
       >
-        {/* Tassel sway after hat lands */}
-        <motion.div
-          initial={{ rotate: 0, originX: '58px', originY: '242px' }}
-          animate={{ rotate: [0, 6, -4, 2, 0] }}
-          transition={{ delay: 1.55, duration: 1.1, ease: 'easeInOut' }}
-          style={{ width: '100%', height: '100%' }}
+
+        {/* Icon SVG */}
+        <svg
+          viewBox="0 0 128 105"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ width: 118, height: 96, flexShrink: 0 }}
         >
-          <GradHat />
-        </motion.div>
+          {/* Book page arcs — 3 pairs, each staggered */}
+          {[0, 1, 2].map((row) => {
+            const yB = 96 - row * 13;
+            const yM = yB - 8;
+            return (
+              <motion.g key={row}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 + row * 0.13, duration: 0.55, ease }}
+              >
+                <path
+                  d={`M 3 ${yB} Q 36 ${yB - 4} ${SX} ${yM}`}
+                  stroke="white" strokeWidth="6.5" strokeLinecap="round" fill="none"
+                />
+                <path
+                  d={`M 125 ${yB} Q 92 ${yB - 4} ${SX} ${yM}`}
+                  stroke="white" strokeWidth="6.5" strokeLinecap="round" fill="none"
+                />
+              </motion.g>
+            );
+          })}
+
+          {/* Sun circle */}
+          <motion.circle
+            cx={SX} cy={SY} r={7.5} fill="white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55, duration: 0.35, ease }}
+          />
+
+          {/* Sun rays — staggered outward from center */}
+          {RAYS.map((angleDeg, i) => {
+            const r = toRad(angleDeg);
+            const distFromCenter = Math.abs(i - 4); // 0 = middle ray
+            return (
+              <motion.line
+                key={i}
+                x1={SX + Math.sin(r) * 13}
+                y1={SY - Math.cos(r) * 13}
+                x2={SX + Math.sin(r) * 40}
+                y2={SY - Math.cos(r) * 40}
+                stroke="white" strokeWidth="4.5" strokeLinecap="round"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{
+                  delay: 0.62 + distFromCenter * 0.055,
+                  duration: 0.4,
+                  ease,
+                }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Vertical divider */}
+        <motion.div
+          initial={{ scaleY: 0, opacity: 0 }}
+          animate={{ scaleY: 1, opacity: 1 }}
+          transition={{ delay: 1.05, duration: 0.55, ease }}
+          style={{
+            width: 1.5,
+            height: 72,
+            background: 'rgba(255,255,255,0.2)',
+            borderRadius: 2,
+            transformOrigin: 'center top',
+          }}
+        />
+
+        {/* Text */}
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+          {[
+            { label: 'ARCADIA',       size: 29, weight: 800, spacing: '0.06em' },
+            { label: 'INTERNATIONAL', size: 29, weight: 800, spacing: '0.06em' },
+            { label: 'UNIVERSITY',    size: 21, weight: 400, spacing: '0.2em'  },
+          ].map(({ label, size, weight, spacing }, i) => (
+            <motion.span
+              key={label}
+              initial={{ opacity: 0, x: -16, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+              transition={{ delay: 1.05 + i * 0.13, duration: 0.85, ease }}
+              style={{ color: 'white', fontSize: size, fontWeight: weight, letterSpacing: spacing }}
+            >
+              {label}
+            </motion.span>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Tagline fade-in */}
-      <motion.p
-        initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ delay: 1.1, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.85, duration: 1.1 }}
         style={{
-          marginTop: 40,
-          color: 'rgba(255,255,255,0.35)',
-          fontSize: 13,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
-          fontWeight: 400,
+          position: 'absolute',
+          bottom: 32,
+          left: 0, right: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '0 44px',
         }}
       >
-        Creative Design
-      </motion.p>
+        {['ARCADIA UNIVERSITY', '2025 – 2026'].map((t) => (
+          <span key={t} style={{ color: 'rgba(255,255,255,0.28)', fontSize: 11, letterSpacing: '0.12em' }}>
+            {t}
+          </span>
+        ))}
+      </motion.div>
     </div>
   );
 }
