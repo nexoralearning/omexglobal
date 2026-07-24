@@ -1,123 +1,113 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 
-const HatSVG = () => (
-  <svg 
-    width="100%" 
-    height="100%" 
-    viewBox="0 0 400 400" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="drop-shadow-2xl relative z-10"
-  >
-    <defs>
-      <linearGradient id="boardGrad" x1="60" y1="80" x2="340" y2="180" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#ffffff" />
-        <stop offset="1" stopColor="#a3a3a3" />
-      </linearGradient>
-      
-      <linearGradient id="baseGrad" x1="140" y1="140" x2="260" y2="220" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#cccccc" />
-        <stop offset="1" stopColor="#525252" />
-      </linearGradient>
-      
-      <linearGradient id="tasselGrad" x1="90" y1="150" x2="90" y2="200" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#ffffff" />
-        <stop offset="1" stopColor="#737373" />
-      </linearGradient>
-    </defs>
+const GradHat = () => (
+  <svg viewBox="20 75 460 450" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+    {/* Hat body — left face visible below brim */}
+    <path d="M 60 248 L 60 316 L 250 416 L 250 348 Z" fill="white" />
+    {/* Hat body — right face visible below brim */}
+    <path d="M 440 248 L 440 316 L 250 416 L 250 348 Z" fill="white" />
 
-    {/* Base / Crown */}
-    <path 
-      d="M 140 140 L 140 190 Q 200 220 260 190 L 260 140 Z" 
-      fill="url(#baseGrad)" 
+    {/*
+      Brim (flat mortarboard top) — outer diamond with two parallelogram holes
+      that create the S negative-space letterform.
+
+      Hole 1: upper-left region  → top opening of S
+      Hole 2: lower-right region → bottom opening of S
+      The remaining interior becomes the S body.
+    */}
+    <path
+      fillRule="evenodd"
+      fill="white"
+      d={[
+        // Outer diamond brim
+        'M 250 98 L 442 242 L 250 386 L 58 242 Z',
+        // Hole 1 — upper-left (top S opening)
+        'M 250 152 L 104 242 L 192 242 L 250 204 Z',
+        // Hole 2 — lower-right (bottom S opening)
+        'M 250 332 L 396 242 L 308 242 L 250 280 Z',
+      ].join(' ')}
     />
 
-    {/* Board */}
-    <path 
-      d="M 200 70 L 340 120 L 200 170 L 60 120 Z" 
-      fill="url(#boardGrad)" 
+    {/* Tassel cord from left brim corner */}
+    <line
+      x1="58" y1="242"
+      x2="30" y2="352"
+      stroke="white" strokeWidth="2.8" strokeLinecap="round"
     />
-
-    {/* S Cutout (Renders as #000 to match background and act as a negative space) */}
-    <path 
-      d="M 215 95 
-         C 215 80, 185 80, 185 95 
-         C 185 120, 215 120, 215 145 
-         C 215 160, 185 160, 185 145" 
-      stroke="#000000" 
-      strokeWidth="12" 
-      strokeLinecap="round" 
-      fill="none" 
+    {/* Tassel knot / ball */}
+    <circle cx="30" cy="360" r="7" fill="white" />
+    {/* Tassel hanging strings */}
+    <path
+      d="M 21 367 L 10 412 M 30 368 L 28 414 M 39 367 L 48 412"
+      stroke="white" strokeWidth="2.8" strokeLinecap="round"
     />
-
-    {/* Tassel Sway Group */}
-    <g className="tassel-sway">
-      {/* Cord */}
-      <path 
-        d="M 200 120 Q 140 125 90 150" 
-        stroke="#d4d4d4" 
-        strokeWidth="2.5" 
-        fill="none" 
-      />
-      {/* Tassel Knot */}
-      <circle cx="90" cy="150" r="4.5" fill="#d4d4d4" />
-      {/* Tassel Strings */}
-      <path 
-        d="M 88 154 L 84 190 M 90 155 L 90 196 M 92 154 L 96 190" 
-        stroke="url(#tasselGrad)" 
-        strokeWidth="2.5" 
-        strokeLinecap="round" 
-      />
-    </g>
-
-    {/* Center Button Base (Black cutout ring to separate it from the 'S' spine) */}
-    <circle cx="200" cy="120" r="8" fill="#000000" />
-    
-    {/* Center Button */}
-    <circle cx="200" cy="120" r="5" fill="#ffffff" />
   </svg>
 );
 
 export default function App() {
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-black text-white relative overflow-hidden font-sans">
-      
-      {/* Main Hero Element */}
+    <div
+      style={{
+        minHeight: '100dvh',
+        width: '100%',
+        background: '#000',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Subtle ambient glow behind the hat */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.6, y: 60 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{
-          duration: 1.6,
-          ease: [0.16, 1, 0.3, 1], // Apple-style custom spring ease
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 2 }}
+        style={{
+          position: 'absolute',
+          width: 480,
+          height: 480,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
         }}
-        className="relative w-80 h-80 md:w-[32rem] md:h-[32rem] flex items-center justify-center"
+      />
+
+      {/* Main hat — Apple-style entrance */}
+      <motion.div
+        initial={{ opacity: 0, y: 64, scale: 0.72 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 1.45, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: 380, height: 380 }}
       >
-        {/* Subtle background glow grounding the hat */}
-        <div className="absolute inset-0 bg-white/5 rounded-full blur-[80px] mix-blend-screen scale-75" />
-        
-        <HatSVG />
+        {/* Tassel sway after hat lands */}
+        <motion.div
+          initial={{ rotate: 0, originX: '58px', originY: '242px' }}
+          animate={{ rotate: [0, 6, -4, 2, 0] }}
+          transition={{ delay: 1.55, duration: 1.1, ease: 'easeInOut' }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <GradHat />
+        </motion.div>
       </motion.div>
 
-      {/* Typography / Tagline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{
-          duration: 1.4,
-          delay: 0.8,
-          ease: [0.16, 1, 0.3, 1],
+      {/* Tagline fade-in */}
+      <motion.p
+        initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ delay: 1.1, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          marginTop: 40,
+          color: 'rgba(255,255,255,0.35)',
+          fontSize: 13,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
+          fontWeight: 400,
         }}
-        className="absolute bottom-24 md:bottom-32 flex flex-col items-center gap-3 text-center px-6"
       >
-        <h1 className="text-4xl md:text-6xl font-semibold tracking-[-0.04em] text-white/95">
-          Savant
-        </h1>
-        <p className="text-base md:text-xl text-white/40 tracking-wide font-light max-w-sm">
-          The modern standard for academic distinction.
-        </p>
-      </motion.div>
-      
+        Creative Design
+      </motion.p>
     </div>
   );
 }
