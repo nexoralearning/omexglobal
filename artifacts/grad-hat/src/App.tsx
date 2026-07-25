@@ -1,170 +1,225 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
-const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-// 9 sun rays across a 150° fan
-const RAYS = Array.from({ length: 9 }, (_, i) => -75 + i * (150 / 8));
-const SX = 64, SY = 44; // sun centre in SVG viewBox
+const StaggeredText = ({
+  text, phase, minPhase, maxPhase, style = {},
+}: {
+  text: string; phase: number; minPhase: number; maxPhase: number; style?: React.CSSProperties;
+}) => (
+  <div style={{ display: 'flex', ...style }}>
+    {text.split('').map((char, i) => (
+      <div key={i} style={{ overflow: 'hidden' }}>
+        <motion.span
+          style={{ display: 'inline-block' }}
+          initial={{ y: '100%', opacity: 0, rotateX: 90 }}
+          animate={
+            phase >= minPhase && phase < maxPhase
+              ? { y: '0%', opacity: 1, rotateX: 0 }
+              : phase >= maxPhase
+              ? { y: '-100%', opacity: 0, rotateX: -90 }
+              : { y: '100%', opacity: 0, rotateX: 90 }
+          }
+          transition={{
+            duration: 0.8,
+            ease: EASE,
+            delay: phase >= minPhase && phase < maxPhase ? i * 0.05 : 0,
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      </div>
+    ))}
+  </div>
+);
 
-function toRad(deg: number) { return (deg * Math.PI) / 180; }
+function LogoRevealScene() {
+  const [phase, setPhase] = useState(0);
 
-/**
- * Book page rows, bottom → top.
- * initialOffset: how far DOWN each row starts so they all appear stacked
- * at the bottom row when closed, then spread upward as the book opens.
- */
-const ROWS = [
-  { yBase: 96, yMid: 88, offset: 0  },
-  { yBase: 83, yMid: 75, offset: 13 },
-  { yBase: 70, yMid: 62, offset: 26 },
-];
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setPhase(1), 500),
+      setTimeout(() => setPhase(2), 1500),
+      setTimeout(() => setPhase(3), 2000),
+      setTimeout(() => setPhase(4), 2800),
+      setTimeout(() => setPhase(5), 5800),
+    ];
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, []);
 
-export default function App() {
   return (
-    <div style={{
-      minHeight: '100dvh',
-      width: '100%',
-      background: '#090909',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-      position: 'relative',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
-    }}>
-
-      {/* Ambient glow */}
+    <motion.div
+      style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'black', color: 'white', overflow: 'hidden',
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Background glow */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 2.5 }}
         style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 62%)',
-          pointerEvents: 'none',
+          position: 'absolute', top: '50%', left: '50%',
+          width: '80vw', height: '80vw', borderRadius: '50%',
+          background: 'white', pointerEvents: 'none', filter: 'blur(100px)',
         }}
+        initial={{ x: '-50%', y: '-50%', scale: 0.8, opacity: 0 }}
+        animate={{ scale: phase >= 5 ? 0.9 : 1.3, opacity: phase >= 5 ? 0 : 0.05 }}
+        transition={{ duration: 5, ease: 'easeOut', delay: 0.5 }}
       />
 
-      {/* ── Full lockup ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+      {/* Grid overlay */}
+      <motion.div
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)',
+          backgroundSize: '4vw 4vw',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: phase >= 5 ? 0 : 0.03 }}
+        transition={{ duration: 2 }}
+      />
 
-        {/*
-          ── Icon ──
-          The icon itself starts slightly compressed on X (like a book seen
-          edge-on) and opens to full width — combined with page rows
-          spreading from a stacked/closed position upward.
-        */}
+      {/* Main container — slow continuous scale */}
+      <motion.div
+        style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        initial={{ scale: 0.95 }}
+        animate={{ scale: phase >= 5 ? 0.95 : 1.05 }}
+        transition={{ duration: 7, ease: 'linear' }}
+      >
+        {/* Logo icon */}
         <motion.div
-          initial={{ scaleX: 0.35, opacity: 0 }}
-          animate={{ scaleX: 1,    opacity: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          style={{ width: 118, height: 96, flexShrink: 0, transformOrigin: 'center center' }}
+          style={{
+            position: 'relative', overflow: 'hidden', marginBottom: '1.5rem',
+            display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+            width: '24vw', height: '18vw',
+          }}
+          initial={{ opacity: 0, scale: 0.8, filter: 'blur(20px)', y: 30 }}
+          animate={
+            phase >= 1 && phase < 5
+              ? { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0 }
+              : phase >= 5
+              ? { opacity: 0, scale: 0.9, filter: 'blur(20px)', y: -20 }
+              : { opacity: 0, scale: 0.8, filter: 'blur(20px)', y: 30 }
+          }
+          transition={{ duration: 1.2, ease: EASE }}
         >
-          <svg viewBox="0 0 128 105" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-
-            {/* Book page arcs — start stacked at bottom, spread upward */}
-            {ROWS.map((row, i) => (
-              <motion.g
-                key={i}
-                // translateY starts at offset (so all rows are at the bottom)
-                // then animates to 0 (spreads to final position)
-                initial={{ y: row.offset, opacity: i === 0 ? 1 : 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  y:       { delay: 0.05 + i * 0.12, duration: 0.75, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { delay: 0.05 + i * 0.12, duration: 0.45, ease },
-                }}
-              >
-                {/* left page arc */}
-                <path
-                  d={`M 3 ${row.yBase} Q 36 ${row.yBase - 4} ${SX} ${row.yMid}`}
-                  stroke="white" strokeWidth="6.5" strokeLinecap="round" fill="none"
-                />
-                {/* right page arc */}
-                <path
-                  d={`M 125 ${row.yBase} Q 92 ${row.yBase - 4} ${SX} ${row.yMid}`}
-                  stroke="white" strokeWidth="6.5" strokeLinecap="round" fill="none"
-                />
-              </motion.g>
-            ))}
-
-            {/* Sun circle — rises as book opens */}
-            <motion.circle
-              cx={SX} cy={SY} r={7.5} fill="white"
-              initial={{ opacity: 0, cy: SY + 16 }}
-              animate={{ opacity: 1, cy: SY }}
-              transition={{ delay: 0.42, duration: 0.55, ease }}
-            />
-
-            {/* Rays — fan from center outward after sun appears */}
-            {RAYS.map((angleDeg, i) => {
-              const r = toRad(angleDeg);
-              const distFromCenter = Math.abs(i - 4);
-              const x1 = SX + Math.sin(r) * 13, y1 = SY - Math.cos(r) * 13;
-              const x2 = SX + Math.sin(r) * 40, y2 = SY - Math.cos(r) * 40;
-              return (
-                <motion.line
-                  key={i}
-                  x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke="white" strokeWidth="4.5" strokeLinecap="round"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.52 + distFromCenter * 0.05, duration: 0.38, ease }}
-                />
-              );
-            })}
-          </svg>
+          <img
+            src={`${import.meta.env.BASE_URL}images/logo.png`}
+            alt="ONEX GLOBAL"
+            style={{
+              position: 'absolute', top: 0, left: '50%',
+              width: '120%', height: 'auto',
+              mixBlendMode: 'screen',
+              clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+              transform: 'translateX(-50%) scale(1.2)',
+            }}
+          />
         </motion.div>
 
-        {/* Divider */}
-        <motion.div
-          initial={{ scaleY: 0, opacity: 0 }}
-          animate={{ scaleY: 1, opacity: 1 }}
-          transition={{ delay: 0.82, duration: 0.55, ease }}
-          style={{
-            width: 1.5, height: 60,
-            background: 'rgba(255,255,255,0.22)',
-            borderRadius: 2,
-            transformOrigin: 'center top',
-          }}
-        />
-
-        {/* Text: ONEX / GLOBAL */}
-        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.18, gap: 3 }}>
-          {[
-            { label: 'ONEX',   size: 36, weight: 800, spacing: '0.07em',  delay: 0.82 },
-            { label: 'GLOBAL', size: 22, weight: 400, spacing: '0.22em',  delay: 0.95 },
-          ].map(({ label, size, weight, spacing, delay }) => (
-            <motion.span
-              key={label}
-              initial={{ opacity: 0, x: -14, filter: 'blur(6px)' }}
-              animate={{ opacity: 1, x: 0,   filter: 'blur(0px)' }}
-              transition={{ delay, duration: 0.85, ease }}
-              style={{ color: 'white', fontSize: size, fontWeight: weight, letterSpacing: spacing }}
-            >
-              {label}
-            </motion.span>
-          ))}
+        {/* Brand text */}
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <StaggeredText
+            text="ONEX"
+            phase={phase} minPhase={2} maxPhase={5}
+            style={{
+              fontSize: '8vw', lineHeight: '0.85', fontWeight: 900,
+              letterSpacing: '-0.01em',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
+            }}
+          />
+          <StaggeredText
+            text="GLOBAL"
+            phase={phase} minPhase={3} maxPhase={5}
+            style={{
+              fontSize: '5vw', lineHeight: '0.85', marginTop: '0.5rem',
+              fontWeight: 400, letterSpacing: '0.22em',
+              background: 'linear-gradient(to bottom, #ffffff, #888888)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
+            }}
+          />
         </div>
-      </div>
-
-      {/* Footer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.6, duration: 1.1 }}
-        style={{
-          position: 'absolute', bottom: 32, left: 0, right: 0,
-          display: 'flex', justifyContent: 'space-between', padding: '0 44px',
-        }}
-      >
-        {['ONEX GLOBAL', '2025 – 2026'].map((t) => (
-          <span key={t} style={{ color: 'rgba(255,255,255,0.28)', fontSize: 11, letterSpacing: '0.12em' }}>
-            {t}
-          </span>
-        ))}
       </motion.div>
+
+      {/* Bottom-left corner */}
+      <motion.div
+        style={{
+          position: 'absolute', bottom: '4vw', left: '4vw',
+          fontWeight: 700, fontSize: '1.2vw', letterSpacing: '0.3em',
+          color: 'rgba(255,255,255,0.4)',
+        }}
+        initial={{ opacity: 0, x: -30, filter: 'blur(10px)' }}
+        animate={
+          phase >= 4 && phase < 5 ? { opacity: 1, x: 0, filter: 'blur(0px)' }
+          : phase >= 5             ? { opacity: 0, x: -20, filter: 'blur(10px)' }
+                                   : { opacity: 0, x: -30, filter: 'blur(10px)' }
+        }
+        transition={{ duration: 1, ease: EASE }}
+      >
+        ONEX GLOBAL
+      </motion.div>
+
+      {/* Bottom-right corner */}
+      <motion.div
+        style={{
+          position: 'absolute', bottom: '4vw', right: '4vw',
+          fontSize: '1.2vw', letterSpacing: '0.15em',
+          color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace',
+        }}
+        initial={{ opacity: 0, x: 30, filter: 'blur(10px)' }}
+        animate={
+          phase >= 4 && phase < 5 ? { opacity: 1, x: 0, filter: 'blur(0px)' }
+          : phase >= 5             ? { opacity: 0, x: 20, filter: 'blur(10px)' }
+                                   : { opacity: 0, x: 30, filter: 'blur(10px)' }
+        }
+        transition={{ duration: 1, ease: EASE }}
+      >
+        2025 – 2026
+      </motion.div>
+
+      {/* Cinematic vertical lines */}
+      <motion.div
+        style={{
+          position: 'absolute', top: 0, bottom: 0, left: '4vw',
+          width: 1, background: 'rgba(255,255,255,0.05)', pointerEvents: 'none', originY: '0',
+        }}
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: phase >= 1 && phase < 5 ? 1 : 0 }}
+        transition={{ duration: 2, ease: 'easeInOut' }}
+      />
+      <motion.div
+        style={{
+          position: 'absolute', top: 0, bottom: 0, right: '4vw',
+          width: 1, background: 'rgba(255,255,255,0.05)', pointerEvents: 'none', originY: '1',
+        }}
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: phase >= 1 && phase < 5 ? 1 : 0 }}
+        transition={{ duration: 2, ease: 'easeInOut' }}
+      />
+    </motion.div>
+  );
+}
+
+export default function App() {
+  const [loopKey, setLoopKey] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setLoopKey((k) => k + 1), 7000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', background: 'black', position: 'relative', overflow: 'hidden' }}>
+      <AnimatePresence mode="wait">
+        <LogoRevealScene key={loopKey} />
+      </AnimatePresence>
     </div>
   );
 }
