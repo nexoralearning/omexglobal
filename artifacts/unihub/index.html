@@ -12,7 +12,7 @@
 
     html, body {
       width: 100%; height: 100%;
-      background: #080808;
+      background: #090909;
       overflow: hidden;
       font-family: 'Montserrat', sans-serif;
     }
@@ -21,126 +21,110 @@
       position: relative;
       width: 100vw; height: 100vh;
       display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
     }
 
     /* ── Ambient glow ── */
     #glow {
-      position: absolute;
-      width: 70vw; height: 70vw;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(0.6);
-      opacity: 0;
-      pointer-events: none;
-      will-change: opacity, transform;
-    }
-
-    /* ── Grid texture ── */
-    #grid {
       position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px);
-      background-size: 4vw 4vw;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 62%);
       opacity: 0;
       pointer-events: none;
+      will-change: opacity;
     }
 
-    /* ── Cinematic border lines ── */
-    .vline {
-      position: absolute; top: 0; bottom: 0;
-      width: 1px;
-      background: rgba(255,255,255,0.06);
-      transform: scaleY(0);
-    }
-    #vl { left: 4vw;  transform-origin: top center; }
-    #vr { right: 4vw; transform-origin: bottom center; }
-
-    /* ── Main lockup ── */
+    /* ── Main lockup: icon + divider + text side-by-side ── */
     #lockup {
-      position: relative; z-index: 10;
-      display: flex; flex-direction: column; align-items: center;
-      opacity: 0;
-      transform: scale(0.95);
-      will-change: opacity, transform;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      opacity: 1; /* lockup itself stays; children animate */
     }
 
-    /* ── Logo icon (PNG, clipped to top half) ── */
+    /* ── Icon SVG wrapper ── */
     #icon-wrap {
-      position: relative;
-      width: 24vw; height: 13vw;
-      overflow: hidden;
-      margin-bottom: 2.5vw;
+      width: 118px; height: 96px;
+      flex-shrink: 0;
+      transform-origin: center center;
+      /* initial: compressed + invisible */
+      transform: scaleX(0.35);
       opacity: 0;
-      filter: blur(20px);
-      transform: scale(0.82) translateY(1.5vw);
-      will-change: opacity, filter, transform;
+      will-change: transform, opacity;
     }
 
-    #icon-wrap img {
-      position: absolute;
-      top: 0; left: 50%;
-      width: 120%;
-      transform: translateX(-50%) scale(1.2);
-      mix-blend-mode: screen;
-      clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+    #icon-wrap svg {
+      width: 100%; height: 100%;
+      overflow: visible;
     }
 
-    /* ── Brand text ── */
+    /* ── SVG animated groups ── */
+    .arc-row {
+      will-change: transform, opacity;
+    }
+
+    .sun-group {
+      will-change: transform, opacity;
+    }
+
+    .ray-line {
+      will-change: opacity;
+    }
+
+    /* ── Vertical divider ── */
+    #divider {
+      width: 1.5px; height: 60px;
+      background: rgba(255,255,255,0.22);
+      border-radius: 2px;
+      transform-origin: center top;
+      transform: scaleY(0);
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    /* ── Text block ── */
     #text-block {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0.4vw;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.18;
+      gap: 3px;
     }
 
-    /* perspective on each line so rotateX looks 3-D */
-    .brand-line {
+    #onex {
+      display: block;
       color: white;
-      display: flex; justify-content: center;
-      perspective: 800px;
-    }
-
-    #line-onex {
-      font-size: clamp(28px, 8vw, 120px);
+      font-size: 36px;
       font-weight: 900;
-      letter-spacing: -0.01em;
-      line-height: 0.85;
-    }
-    #line-global {
-      font-size: clamp(18px, 8vw, 120px);
-      font-weight: 900;
-      letter-spacing: 0.2em;
-      line-height: 0.85;
-      background: linear-gradient(to bottom, #ffffff, #888888);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* ── Character wrappers — clip the 3-D flip ── */
-    .char-wrap {
-      display: inline-block;
-      overflow: hidden;           /* clips char as it slides up from below */
-    }
-
-    .char {
-      display: inline-block;
+      letter-spacing: 0.07em;
       opacity: 0;
-      transform: translateY(100%) rotateX(90deg);
-      will-change: opacity, transform;
+      transform: translateX(-14px);
+      filter: blur(6px);
+      will-change: opacity, transform, filter;
+    }
+
+    #global {
+      display: block;
+      color: white;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      opacity: 0;
+      transform: translateX(-14px);
+      filter: blur(6px);
+      will-change: opacity, transform, filter;
     }
 
     /* ── Footer ── */
     #footer {
       position: absolute;
-      bottom: clamp(16px, 3.2vh, 44px);
-      left: 0; right: 0;
+      bottom: 32px; left: 0; right: 0;
       display: flex; justify-content: space-between;
-      padding: 0 clamp(20px, 4.4vw, 60px);
+      padding: 0 44px;
       opacity: 0;
+      will-change: opacity;
     }
     #footer span {
-      color: rgba(255,255,255,0.3);
-      font-size: clamp(9px, 1.1vw, 14px);
+      color: rgba(255,255,255,0.28);
+      font-size: 11px;
       letter-spacing: 0.12em;
       font-weight: 400;
       text-transform: uppercase;
@@ -150,21 +134,65 @@
 <body>
   <div id="stage">
     <div id="glow"></div>
-    <div id="grid"></div>
-    <div class="vline" id="vl"></div>
-    <div class="vline" id="vr"></div>
 
     <div id="lockup">
+      <!-- ── Animated SVG icon ── -->
       <div id="icon-wrap">
-        <img src="images/logo.png" alt="ONEX GLOBAL logo" />
+        <!--
+          viewBox 0 0 128 105
+          Sun centre: SX=64, SY=44
+          3 arc rows (bottom→top): yBase 96/83/70, yMid 88/75/62
+          9 rays fanning 150° (−75° → +75°)
+        -->
+        <svg viewBox="0 0 128 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- Row 0: bottom arcs (no offset — always visible base) -->
+          <g class="arc-row" id="arc0">
+            <path d="M 3 96 Q 36 92 64 88" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+            <path d="M 125 96 Q 92 92 64 88" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+          </g>
+
+          <!-- Row 1: middle arcs -->
+          <g class="arc-row" id="arc1">
+            <path d="M 3 83 Q 36 79 64 75" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+            <path d="M 125 83 Q 92 79 64 75" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+          </g>
+
+          <!-- Row 2: top arcs -->
+          <g class="arc-row" id="arc2">
+            <path d="M 3 70 Q 36 66 64 62" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+            <path d="M 125 70 Q 92 66 64 62" stroke="white" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+          </g>
+
+          <!-- Sun circle (wrapped in g for translateY animation) -->
+          <g class="sun-group" id="sun-g">
+            <circle cx="64" cy="44" r="7.5" fill="white"/>
+          </g>
+
+          <!-- 9 sun rays (pre-calculated endpoints) -->
+          <line class="ray-line" id="ray0" x1="51.44" y1="40.64" x2="25.36" y2="33.65" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray1" x1="53.19" y1="36.78" x2="30.74" y2="21.78" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray2" x1="56.09" y1="33.69" x2="39.65" y2="12.27" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray3" x1="59.82" y1="31.69" x2="51.14" y2="6.12"  stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray4" x1="64.00" y1="31.00" x2="64.00" y2="4.00"  stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray5" x1="68.18" y1="31.69" x2="76.86" y2="6.12"  stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray6" x1="71.91" y1="33.69" x2="88.35" y2="12.27" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray7" x1="74.81" y1="36.78" x2="97.26" y2="21.78" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <line class="ray-line" id="ray8" x1="76.56" y1="40.64" x2="102.64" y2="33.65" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
       </div>
 
+      <!-- ── Vertical divider ── -->
+      <div id="divider"></div>
+
+      <!-- ── Brand text ── -->
       <div id="text-block">
-        <div class="brand-line" id="line-onex"></div>
-        <div class="brand-line" id="line-global"></div>
+        <span id="onex">ONEX</span>
+        <span id="global">GLOBAL</span>
       </div>
     </div>
 
+    <!-- ── Footer ── -->
     <div id="footer">
       <span>ONEX GLOBAL</span>
       <span>2025 – 2026</span>
@@ -172,169 +200,210 @@
   </div>
 
   <script>
-    const LOOP = 8000; // full cycle in ms
-    const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    const E1 = 'cubic-bezier(0.22, 1, 0.36, 1)'; // snappy spring (icon open)
+    const E2 = 'cubic-bezier(0.16, 1, 0.3,  1)'; // smooth spring (text / sun)
+    const LOOP = 7000; // full cycle ms
 
-    // ── Build character elements ──────────────────────────────────────────────
-    function buildChars(lineEl, text) {
-      const chars = [];
-      for (const char of text) {
-        const wrap = document.createElement('span');
-        wrap.className = 'char-wrap';
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const glow    = document.getElementById('glow');
+    const iconW   = document.getElementById('icon-wrap');
+    const arc0    = document.getElementById('arc0');
+    const arc1    = document.getElementById('arc1');
+    const arc2    = document.getElementById('arc2');
+    const sunG    = document.getElementById('sun-g');
+    const divider = document.getElementById('divider');
+    const onex    = document.getElementById('onex');
+    const global_ = document.getElementById('global');
+    const footer  = document.getElementById('footer');
+    const rays    = [0,1,2,3,4,5,6,7,8].map(i => document.getElementById('ray'+i));
+    // ray distance from center (ray 4 = centre = dist 0)
+    const rayDist = [4,3,2,1,0,1,2,3,4];
 
-        const span = document.createElement('span');
-        span.className = 'char';
-        span.textContent = char === ' ' ? '\u00A0' : char;
-
-        wrap.appendChild(span);
-        lineEl.appendChild(wrap);
-        chars.push(span);
-      }
-      return chars;
-    }
-
-    const onexLine    = document.getElementById('line-onex');
-    const globalLine  = document.getElementById('line-global');
-    const onexChars   = buildChars(onexLine,   'ONEX');
-    const globalChars = buildChars(globalLine, 'GLOBAL');
-
-    // ── Animation helpers ─────────────────────────────────────────────────────
-    function charIn(el, staggerDelay) {
-      setTimeout(() => {
-        el.style.transition = `opacity 0.8s ${EASE}, transform 0.8s ${EASE}`;
-        el.style.opacity    = '1';
-        el.style.transform  = 'translateY(0%) rotateX(0deg)';
-      }, staggerDelay);
-    }
-
-    function charOut(el, delay) {
-      setTimeout(() => {
-        el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-        el.style.opacity    = '0';
-        el.style.transform  = 'translateY(-100%) rotateX(-90deg)';
-      }, delay);
-    }
-
-    function resetChar(el) {
-      el.style.transition = 'none';
-      el.style.opacity    = '0';
-      el.style.transform  = 'translateY(100%) rotateX(90deg)';
-    }
-
-    // ── DOM references ────────────────────────────────────────────────────────
-    const glow     = document.getElementById('glow');
-    const grid     = document.getElementById('grid');
-    const vl       = document.getElementById('vl');
-    const vr       = document.getElementById('vr');
-    const lockup   = document.getElementById('lockup');
-    const iconWrap = document.getElementById('icon-wrap');
-    const footer   = document.getElementById('footer');
-
-    // ── Reset all elements to initial hidden state ────────────────────────────
+    // ── Reset to initial hidden state ─────────────────────────────────────────
     function reset() {
-      glow.style.transition    = 'none';
+      const none = 'none';
+
+      glow.style.transition    = none;
       glow.style.opacity       = '0';
-      glow.style.transform     = 'translate(-50%, -50%) scale(0.6)';
 
-      grid.style.transition    = 'none';
-      grid.style.opacity       = '0';
+      iconW.style.transition   = none;
+      iconW.style.transform    = 'scaleX(0.35)';
+      iconW.style.opacity      = '0';
 
-      vl.style.transition      = 'none';
-      vl.style.transform       = 'scaleY(0)';
-      vr.style.transition      = 'none';
-      vr.style.transform       = 'scaleY(0)';
+      // arcs: row 0 stays, rows 1+2 start offset+invisible
+      arc0.style.transition    = none;
+      arc0.style.transform     = 'translateY(0)';
+      arc0.style.opacity       = '1';
 
-      lockup.style.transition  = 'none';
-      lockup.style.opacity     = '0';
-      lockup.style.transform   = 'scale(0.95)';
+      arc1.style.transition    = none;
+      arc1.style.transform     = 'translateY(13px)';
+      arc1.style.opacity       = '0';
 
-      iconWrap.style.transition = 'none';
-      iconWrap.style.opacity    = '0';
-      iconWrap.style.filter     = 'blur(20px)';
-      iconWrap.style.transform  = 'scale(0.82) translateY(1.5vw)';
+      arc2.style.transition    = none;
+      arc2.style.transform     = 'translateY(26px)';
+      arc2.style.opacity       = '0';
 
-      footer.style.transition  = 'none';
+      sunG.style.transition    = none;
+      sunG.style.transform     = 'translateY(16px)';
+      sunG.style.opacity       = '0';
+
+      rays.forEach(r => {
+        r.style.transition     = none;
+        r.style.opacity        = '0';
+      });
+
+      divider.style.transition = none;
+      divider.style.transform  = 'scaleY(0)';
+      divider.style.opacity    = '0';
+
+      onex.style.transition    = none;
+      onex.style.opacity       = '0';
+      onex.style.transform     = 'translateX(-14px)';
+      onex.style.filter        = 'blur(6px)';
+
+      global_.style.transition = none;
+      global_.style.opacity    = '0';
+      global_.style.transform  = 'translateX(-14px)';
+      global_.style.filter     = 'blur(6px)';
+
+      footer.style.transition  = none;
       footer.style.opacity     = '0';
-
-      [...onexChars, ...globalChars].forEach(resetChar);
     }
 
-    // ── One full cycle ────────────────────────────────────────────────────────
+    // ── One full intro → hold → outro cycle ──────────────────────────────────
     function runLoop() {
       reset();
 
-      // Double rAF ensures transition:none has been painted before re-adding transitions
+      // Double rAF: let transition:none paint before re-adding transitions
       requestAnimationFrame(() => requestAnimationFrame(() => {
 
-        // 400ms — env reveals; lockup fades in and begins slow drift upward
+        // ── INTRO ─────────────────────────────────────────────────────────
+
+        // t=0ms — icon wrapper opens (scaleX book-open effect)
+        iconW.style.transition = `transform 0.9s ${E1}, opacity 0.9s ${E1}`;
+        iconW.style.transform  = 'scaleX(1)';
+        iconW.style.opacity    = '1';
+
+        // t=50ms — bottom arc (row 0) is already visible; rows 1+2 spread upward
         setTimeout(() => {
-          glow.style.transition = 'opacity 2s ease, transform 5s ease';
-          glow.style.opacity    = '0.9';
-          glow.style.transform  = 'translate(-50%, -50%) scale(1.3)';
+          arc1.style.transition = `transform 0.75s ${E1} 0s, opacity 0.45s ${E2} 0s`;
+          arc1.style.transform  = 'translateY(0)';
+          arc1.style.opacity    = '1';
+        }, 170);
 
-          grid.style.transition = 'opacity 2s ease';
-          grid.style.opacity    = '1';
-
-          vl.style.transition   = 'transform 2s ease';
-          vl.style.transform    = 'scaleY(1)';
-          vr.style.transition   = 'transform 2s ease';
-          vr.style.transform    = 'scaleY(1)';
-
-          // slow continuous scale — matches Scene1's 7s linear drift
-          lockup.style.transition = `opacity 0.6s ${EASE}, transform 7s linear`;
-          lockup.style.opacity    = '1';
-          lockup.style.transform  = 'scale(1.06)';
-        }, 400);
-
-        // 500ms — icon emerges from blur
         setTimeout(() => {
-          iconWrap.style.transition = `opacity 1.2s ${EASE}, filter 1.2s ${EASE}, transform 1.2s ${EASE}`;
-          iconWrap.style.opacity    = '1';
-          iconWrap.style.filter     = 'blur(0px)';
-          iconWrap.style.transform  = 'scale(1) translateY(0)';
-        }, 500);
+          arc2.style.transition = `transform 0.75s ${E1} 0s, opacity 0.45s ${E2} 0s`;
+          arc2.style.transform  = 'translateY(0)';
+          arc2.style.opacity    = '1';
+        }, 290);
 
-        // 1500ms — ONEX stagger in (55 ms per char, matches Scene1)
-        onexChars.forEach((c, i) => charIn(c, 1500 + i * 55));
+        // t=420ms — sun rises
+        setTimeout(() => {
+          sunG.style.transition = `transform 0.55s ${E2}, opacity 0.55s ${E2}`;
+          sunG.style.transform  = 'translateY(0)';
+          sunG.style.opacity    = '1';
+        }, 420);
 
-        // 2000ms — GLOBAL stagger in (50 ms per char)
-        globalChars.forEach((c, i) => charIn(c, 2000 + i * 50));
+        // t=520–720ms — rays fan out (centre first, edges last)
+        rays.forEach((ray, i) => {
+          const delay = Math.round((0.52 + rayDist[i] * 0.05) * 1000);
+          setTimeout(() => {
+            ray.style.transition = `opacity 0.38s ${E2}`;
+            ray.style.opacity    = '1';
+          }, delay);
+        });
 
-        // 2800ms — footer fades in
+        // t=820ms — divider draws in
+        setTimeout(() => {
+          divider.style.transition = `transform 0.55s ${E2}, opacity 0.55s ${E2}`;
+          divider.style.transform  = 'scaleY(1)';
+          divider.style.opacity    = '1';
+        }, 820);
+
+        // t=820ms — ONEX slides in from left
+        setTimeout(() => {
+          onex.style.transition = `opacity 0.85s ${E2}, transform 0.85s ${E2}, filter 0.85s ${E2}`;
+          onex.style.opacity    = '1';
+          onex.style.transform  = 'translateX(0)';
+          onex.style.filter     = 'blur(0px)';
+        }, 820);
+
+        // t=950ms — GLOBAL slides in
+        setTimeout(() => {
+          global_.style.transition = `opacity 0.85s ${E2}, transform 0.85s ${E2}, filter 0.85s ${E2}`;
+          global_.style.opacity    = '1';
+          global_.style.transform  = 'translateX(0)';
+          global_.style.filter     = 'blur(0px)';
+        }, 950);
+
+        // t=1200ms — ambient glow blooms
+        setTimeout(() => {
+          glow.style.transition = 'opacity 2.5s ease';
+          glow.style.opacity    = '1';
+        }, 1200);
+
+        // t=1600ms — footer fades in
         setTimeout(() => {
           footer.style.transition = 'opacity 1.1s ease';
           footer.style.opacity    = '1';
-        }, 2800);
+        }, 1600);
 
-        // 5800ms — outro: text exits
-        onexChars.forEach((c, i)   => charOut(c, 5800 + i * 20));
-        globalChars.forEach((c, i) => charOut(c, 5800 + i * 18));
+        // ── OUTRO (t=5400ms) ──────────────────────────────────────────────
+
+        const OUT = 'ease';
+
+        // rays fade first
         setTimeout(() => {
-          footer.style.transition = 'opacity 0.6s ease';
-          footer.style.opacity    = '0';
-        }, 5800);
+          rays.forEach(ray => {
+            ray.style.transition = `opacity 0.4s ${OUT}`;
+            ray.style.opacity    = '0';
+          });
+        }, 5400);
 
-        // 6200ms — icon + environment fade out
+        // sun + arcs collapse
         setTimeout(() => {
-          iconWrap.style.transition = 'opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease';
-          iconWrap.style.opacity    = '0';
-          iconWrap.style.filter     = 'blur(20px)';
-          iconWrap.style.transform  = 'scale(0.9) translateY(-1vw)';
+          sunG.style.transition = `transform 0.5s ${OUT}, opacity 0.5s ${OUT}`;
+          sunG.style.transform  = 'translateY(16px)';
+          sunG.style.opacity    = '0';
 
-          glow.style.transition   = 'opacity 0.8s ease';
-          glow.style.opacity      = '0';
-          grid.style.transition   = 'opacity 0.8s ease';
-          grid.style.opacity      = '0';
+          arc2.style.transition = `transform 0.5s ${OUT}, opacity 0.4s ${OUT}`;
+          arc2.style.transform  = 'translateY(26px)';
+          arc2.style.opacity    = '0';
 
-          vl.style.transition     = 'transform 0.8s ease';
-          vl.style.transform      = 'scaleY(0)';
-          vr.style.transition     = 'transform 0.8s ease';
-          vr.style.transform      = 'scaleY(0)';
+          arc1.style.transition = `transform 0.5s ${OUT}, opacity 0.4s ${OUT}`;
+          arc1.style.transform  = 'translateY(13px)';
+          arc1.style.opacity    = '0';
+        }, 5550);
 
-          lockup.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-          lockup.style.opacity    = '0';
-          lockup.style.transform  = 'scale(0.95)';
-        }, 6200);
+        // text + divider exit
+        setTimeout(() => {
+          onex.style.transition    = `opacity 0.5s ${OUT}, transform 0.5s ${OUT}, filter 0.5s ${OUT}`;
+          onex.style.opacity       = '0';
+          onex.style.transform     = 'translateX(-10px)';
+          onex.style.filter        = 'blur(4px)';
+
+          global_.style.transition = `opacity 0.5s ${OUT}, transform 0.5s ${OUT}, filter 0.5s ${OUT}`;
+          global_.style.opacity    = '0';
+          global_.style.transform  = 'translateX(-10px)';
+          global_.style.filter     = 'blur(4px)';
+
+          divider.style.transition = `transform 0.4s ${OUT}, opacity 0.4s ${OUT}`;
+          divider.style.transform  = 'scaleY(0)';
+          divider.style.opacity    = '0';
+
+          footer.style.transition  = `opacity 0.5s ${OUT}`;
+          footer.style.opacity     = '0';
+        }, 5600);
+
+        // icon closes + glow dims
+        setTimeout(() => {
+          iconW.style.transition = `transform 0.6s ${OUT}, opacity 0.6s ${OUT}`;
+          iconW.style.transform  = 'scaleX(0.35)';
+          iconW.style.opacity    = '0';
+
+          glow.style.transition  = 'opacity 0.8s ease';
+          glow.style.opacity     = '0';
+        }, 5900);
 
       }));
     }
