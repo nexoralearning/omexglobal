@@ -43,7 +43,6 @@
       background-size: 4vw 4vw;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 2s ease;
     }
 
     /* ── Cinematic border lines ── */
@@ -52,9 +51,8 @@
       width: 1px;
       background: rgba(255,255,255,0.06);
       transform: scaleY(0);
-      transition: transform 2s ease;
     }
-    #vl { left: 4vw; transform-origin: top center; }
+    #vl { left: 4vw;  transform-origin: top center; }
     #vr { right: 4vw; transform-origin: bottom center; }
 
     /* ── Main lockup ── */
@@ -62,11 +60,11 @@
       position: relative; z-index: 10;
       display: flex; flex-direction: column; align-items: center;
       opacity: 0;
-      transform: scale(0.94);
+      transform: scale(0.95);
       will-change: opacity, transform;
     }
 
-    /* ── Logo icon (the PNG, cropped to top half via clip-path) ── */
+    /* ── Logo icon (PNG, clipped to top half) ── */
     #icon-wrap {
       position: relative;
       width: 24vw; height: 13vw;
@@ -84,7 +82,6 @@
       width: 120%;
       transform: translateX(-50%) scale(1.2);
       mix-blend-mode: screen;
-      /* clip top 50% of the image — isolates the icon, hides the original text */
       clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
     }
 
@@ -95,15 +92,22 @@
       text-align: center;
     }
 
+    /* perspective on each line so rotateX looks 3-D */
     .brand-line {
       color: white;
       display: flex; justify-content: center;
-      overflow: hidden;
+      perspective: 800px;
     }
 
-    #line-onex   { font-size: clamp(28px, 8vw, 120px); font-weight: 900; letter-spacing: -0.01em; line-height: 0.85; }
+    #line-onex {
+      font-size: clamp(28px, 8vw, 120px);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      line-height: 0.85;
+    }
     #line-global {
-      font-size: clamp(18px, 8vw, 120px); font-weight: 900;
+      font-size: clamp(18px, 8vw, 120px);
+      font-weight: 900;
       letter-spacing: 0.2em;
       line-height: 0.85;
       background: linear-gradient(to bottom, #ffffff, #888888);
@@ -112,7 +116,12 @@
       background-clip: text;
     }
 
-    /* ── Characters ── */
+    /* ── Character wrappers — clip the 3-D flip ── */
+    .char-wrap {
+      display: inline-block;
+      overflow: hidden;           /* clips char as it slides up from below */
+    }
+
     .char {
       display: inline-block;
       opacity: 0;
@@ -128,193 +137,210 @@
       display: flex; justify-content: space-between;
       padding: 0 clamp(20px, 4.4vw, 60px);
       opacity: 0;
-      transition: opacity 1.1s ease;
     }
     #footer span {
       color: rgba(255,255,255,0.3);
-      font-size: clamp(8px, 1.1vw, 14px);
-      letter-spacing: 0.3em;
-      font-weight: 700;
+      font-size: clamp(9px, 1.1vw, 14px);
+      letter-spacing: 0.12em;
+      font-weight: 400;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-<div id="stage">
-  <div id="glow"></div>
-  <div id="grid"></div>
-  <div class="vline" id="vl"></div>
-  <div class="vline" id="vr"></div>
+  <div id="stage">
+    <div id="glow"></div>
+    <div id="grid"></div>
+    <div class="vline" id="vl"></div>
+    <div class="vline" id="vr"></div>
 
-  <div id="lockup">
-    <!-- Logo PNG — mix-blend-mode:screen strips the black bg; clip-path hides the original text -->
-    <div id="icon-wrap">
-      <img src="images/logo.png" alt="ONEX GLOBAL icon" />
+    <div id="lockup">
+      <div id="icon-wrap">
+        <img src="images/logo.png" alt="ONEX GLOBAL logo" />
+      </div>
+
+      <div id="text-block">
+        <div class="brand-line" id="line-onex"></div>
+        <div class="brand-line" id="line-global"></div>
+      </div>
     </div>
 
-    <!-- ONEX GLOBAL staggered text -->
-    <div id="text-block">
-      <div class="brand-line" id="line-onex"></div>
-      <div class="brand-line" id="line-global"></div>
+    <div id="footer">
+      <span>ONEX GLOBAL</span>
+      <span>2025 – 2026</span>
     </div>
   </div>
 
-  <div id="footer">
-    <span>ONEX GLOBAL</span>
-    <span>2025 – 2026</span>
-  </div>
-</div>
+  <script>
+    const LOOP = 8000; // full cycle in ms
+    const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
-<script>
-  const LOOP = 7000;
+    // ── Build character elements ──────────────────────────────────────────────
+    function buildChars(lineEl, text) {
+      const chars = [];
+      for (const char of text) {
+        const wrap = document.createElement('span');
+        wrap.className = 'char-wrap';
 
-  function buildChars(el, text) {
-    el.innerHTML = text.split('').map((c, i) =>
-      `<span class="char" data-i="${i}">${c === ' ' ? '&nbsp;' : c}</span>`
-    ).join('');
-    return Array.from(el.querySelectorAll('.char'));
-  }
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = char === ' ' ? '\u00A0' : char;
 
-  const onexChars   = buildChars(document.getElementById('line-onex'), 'ONEX');
-  const globalChars = buildChars(document.getElementById('line-global'), 'GLOBAL');
+        wrap.appendChild(span);
+        lineEl.appendChild(wrap);
+        chars.push(span);
+      }
+      return chars;
+    }
 
-  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+    const onexLine    = document.getElementById('line-onex');
+    const globalLine  = document.getElementById('line-global');
+    const onexChars   = buildChars(onexLine,   'ONEX');
+    const globalChars = buildChars(globalLine, 'GLOBAL');
 
-  // Animate a single numeric CSS property over `dur` ms
-  function animate(el, fromProps, toProps, duration, delay = 0) {
-    setTimeout(() => {
-      const start = performance.now();
-      // set starting state
-      applyProps(el, fromProps);
-      requestAnimationFrame(function tick(now) {
-        const t = Math.min((now - start) / duration, 1);
-        const e = easeOut(t);
-        // interpolate & apply
-        const current = {};
-        for (const k of Object.keys(toProps)) {
-          const from = fromProps[k] ?? 0;
-          const to = toProps[k];
-          current[k] = from + (to - from) * e;
-        }
-        applyProps(el, current);
-        if (t < 1) requestAnimationFrame(tick);
-      });
-    }, delay);
-  }
+    // ── Animation helpers ─────────────────────────────────────────────────────
+    function charIn(el, staggerDelay) {
+      setTimeout(() => {
+        el.style.transition = `opacity 0.8s ${EASE}, transform 0.8s ${EASE}`;
+        el.style.opacity    = '1';
+        el.style.transform  = 'translateY(0%) rotateX(0deg)';
+      }, staggerDelay);
+    }
 
-  function applyProps(el, props) {
-    if ('opacity' in props) el.style.opacity = props.opacity;
-    const parts = [];
-    if ('scale' in props)       parts.push(`scale(${props.scale})`);
-    if ('translateY' in props)  parts.push(`translateY(${props.translateY}vw)`);
-    if ('translateX' in props)  parts.push(`translateX(${props.translateX}%)`);
-    if ('blur' in props)        el.style.filter = `blur(${props.blur}px)`;
-    if (parts.length)           el.style.transform = parts.join(' ');
-  }
+    function charOut(el, delay) {
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        el.style.opacity    = '0';
+        el.style.transform  = 'translateY(-100%) rotateX(-90deg)';
+      }, delay);
+    }
 
-  function animateChar(char, show, delay) {
-    setTimeout(() => {
-      char.style.transition = `opacity 0.8s cubic-bezier(0.16,1,0.3,1) , transform 0.8s cubic-bezier(0.16,1,0.3,1)`;
-      char.style.opacity = show ? '1' : '0';
-      char.style.transform = show ? 'translateY(0) rotateX(0deg)' : 'translateY(-100%) rotateX(-90deg)';
-    }, delay);
-  }
+    function resetChar(el) {
+      el.style.transition = 'none';
+      el.style.opacity    = '0';
+      el.style.transform  = 'translateY(100%) rotateX(90deg)';
+    }
 
-  function runLoop() {
-    // ── Hard reset (no transitions) ──
-    const lockup = document.getElementById('lockup');
+    // ── DOM references ────────────────────────────────────────────────────────
+    const glow     = document.getElementById('glow');
+    const grid     = document.getElementById('grid');
+    const vl       = document.getElementById('vl');
+    const vr       = document.getElementById('vr');
+    const lockup   = document.getElementById('lockup');
     const iconWrap = document.getElementById('icon-wrap');
-    const glow = document.getElementById('glow');
-    const grid = document.getElementById('grid');
-    const footer = document.getElementById('footer');
+    const footer   = document.getElementById('footer');
 
-    lockup.style.transition = 'none';
-    lockup.style.opacity = '0';
-    lockup.style.transform = 'scale(0.94)';
+    // ── Reset all elements to initial hidden state ────────────────────────────
+    function reset() {
+      glow.style.transition    = 'none';
+      glow.style.opacity       = '0';
+      glow.style.transform     = 'translate(-50%, -50%) scale(0.6)';
 
-    iconWrap.style.transition = 'none';
-    iconWrap.style.opacity = '0';
-    iconWrap.style.filter = 'blur(20px)';
-    iconWrap.style.transform = 'scale(0.82) translateY(1.5vw)';
+      grid.style.transition    = 'none';
+      grid.style.opacity       = '0';
 
-    glow.style.transition = 'none';
-    glow.style.opacity = '0';
-    glow.style.transform = 'translate(-50%,-50%) scale(0.6)';
+      vl.style.transition      = 'none';
+      vl.style.transform       = 'scaleY(0)';
+      vr.style.transition      = 'none';
+      vr.style.transform       = 'scaleY(0)';
 
-    grid.style.opacity = '0';
-    footer.style.opacity = '0';
-    document.getElementById('vl').style.transform = 'scaleY(0)';
-    document.getElementById('vr').style.transform = 'scaleY(0)';
+      lockup.style.transition  = 'none';
+      lockup.style.opacity     = '0';
+      lockup.style.transform   = 'scale(0.95)';
 
-    [...onexChars, ...globalChars].forEach(c => {
-      c.style.transition = 'none';
-      c.style.opacity = '0';
-      c.style.transform = 'translateY(100%) rotateX(90deg)';
-    });
+      iconWrap.style.transition = 'none';
+      iconWrap.style.opacity    = '0';
+      iconWrap.style.filter     = 'blur(20px)';
+      iconWrap.style.transform  = 'scale(0.82) translateY(1.5vw)';
 
-    // ── Let reset paint, then animate ──
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+      footer.style.transition  = 'none';
+      footer.style.opacity     = '0';
 
-      // 0.4s — glow swells, grid & lines appear, lockup container fades in
-      setTimeout(() => {
-        glow.style.transition = 'opacity 1.8s ease, transform 5s ease';
-        glow.style.opacity = '0.9';
-        glow.style.transform = 'translate(-50%,-50%) scale(1.3)';
+      [...onexChars, ...globalChars].forEach(resetChar);
+    }
 
-        grid.style.transition = 'opacity 2s ease';
-        grid.style.opacity = '1';
+    // ── One full cycle ────────────────────────────────────────────────────────
+    function runLoop() {
+      reset();
 
-        document.getElementById('vl').style.transform = 'scaleY(1)';
-        document.getElementById('vr').style.transform = 'scaleY(1)';
+      // Double rAF ensures transition:none has been painted before re-adding transitions
+      requestAnimationFrame(() => requestAnimationFrame(() => {
 
-        lockup.style.transition = 'opacity 1.2s ease, transform 7s linear';
-        lockup.style.opacity = '1';
-        lockup.style.transform = 'scale(1.06)';
-      }, 400);
+        // 400ms — env reveals; lockup fades in and begins slow drift upward
+        setTimeout(() => {
+          glow.style.transition = 'opacity 2s ease, transform 5s ease';
+          glow.style.opacity    = '0.9';
+          glow.style.transform  = 'translate(-50%, -50%) scale(1.3)';
 
-      // 0.5s — icon emerges from blur
-      setTimeout(() => {
-        iconWrap.style.transition = 'opacity 1.2s cubic-bezier(0.16,1,0.3,1), filter 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1)';
-        iconWrap.style.opacity = '1';
-        iconWrap.style.filter = 'blur(0px)';
-        iconWrap.style.transform = 'scale(1) translateY(0)';
-      }, 500);
+          grid.style.transition = 'opacity 2s ease';
+          grid.style.opacity    = '1';
 
-      // 1.5s — ONEX stagger in
-      onexChars.forEach((c, i) => animateChar(c, true, 1500 + i * 55));
+          vl.style.transition   = 'transform 2s ease';
+          vl.style.transform    = 'scaleY(1)';
+          vr.style.transition   = 'transform 2s ease';
+          vr.style.transform    = 'scaleY(1)';
 
-      // 2.0s — GLOBAL stagger in
-      globalChars.forEach((c, i) => animateChar(c, true, 2000 + i * 50));
+          // slow continuous scale — matches Scene1's 7s linear drift
+          lockup.style.transition = `opacity 0.6s ${EASE}, transform 7s linear`;
+          lockup.style.opacity    = '1';
+          lockup.style.transform  = 'scale(1.06)';
+        }, 400);
 
-      // 2.8s — footer
-      setTimeout(() => { footer.style.opacity = '1'; }, 2800);
+        // 500ms — icon emerges from blur
+        setTimeout(() => {
+          iconWrap.style.transition = `opacity 1.2s ${EASE}, filter 1.2s ${EASE}, transform 1.2s ${EASE}`;
+          iconWrap.style.opacity    = '1';
+          iconWrap.style.filter     = 'blur(0px)';
+          iconWrap.style.transform  = 'scale(1) translateY(0)';
+        }, 500);
 
-      // 5.8s — outro: chars exit
-      onexChars.forEach((c, i) => animateChar(c, false, 5800 + i * 20));
-      globalChars.forEach((c, i) => animateChar(c, false, 5800 + i * 18));
+        // 1500ms — ONEX stagger in (55 ms per char, matches Scene1)
+        onexChars.forEach((c, i) => charIn(c, 1500 + i * 55));
 
-      setTimeout(() => { footer.style.opacity = '0'; }, 5800);
+        // 2000ms — GLOBAL stagger in (50 ms per char)
+        globalChars.forEach((c, i) => charIn(c, 2000 + i * 50));
 
-      // 6.2s — icon + glow fade out
-      setTimeout(() => {
-        iconWrap.style.transition = 'opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease';
-        iconWrap.style.opacity = '0';
-        iconWrap.style.filter = 'blur(20px)';
-        iconWrap.style.transform = 'scale(0.9) translateY(-1vw)';
+        // 2800ms — footer fades in
+        setTimeout(() => {
+          footer.style.transition = 'opacity 1.1s ease';
+          footer.style.opacity    = '1';
+        }, 2800);
 
-        glow.style.transition = 'opacity 0.8s ease';
-        glow.style.opacity = '0';
-        grid.style.transition = 'opacity 0.8s ease';
-        grid.style.opacity = '0';
-        document.getElementById('vl').style.transition = 'transform 0.8s ease';
-        document.getElementById('vr').style.transition = 'transform 0.8s ease';
-        document.getElementById('vl').style.transform = 'scaleY(0)';
-        document.getElementById('vr').style.transform = 'scaleY(0)';
-      }, 6200);
-    }));
-  }
+        // 5800ms — outro: text exits
+        onexChars.forEach((c, i)   => charOut(c, 5800 + i * 20));
+        globalChars.forEach((c, i) => charOut(c, 5800 + i * 18));
+        setTimeout(() => {
+          footer.style.transition = 'opacity 0.6s ease';
+          footer.style.opacity    = '0';
+        }, 5800);
 
-  runLoop();
-  setInterval(runLoop, LOOP);
-</script>
+        // 6200ms — icon + environment fade out
+        setTimeout(() => {
+          iconWrap.style.transition = 'opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease';
+          iconWrap.style.opacity    = '0';
+          iconWrap.style.filter     = 'blur(20px)';
+          iconWrap.style.transform  = 'scale(0.9) translateY(-1vw)';
+
+          glow.style.transition   = 'opacity 0.8s ease';
+          glow.style.opacity      = '0';
+          grid.style.transition   = 'opacity 0.8s ease';
+          grid.style.opacity      = '0';
+
+          vl.style.transition     = 'transform 0.8s ease';
+          vl.style.transform      = 'scaleY(0)';
+          vr.style.transition     = 'transform 0.8s ease';
+          vr.style.transform      = 'scaleY(0)';
+
+          lockup.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          lockup.style.opacity    = '0';
+          lockup.style.transform  = 'scale(0.95)';
+        }, 6200);
+
+      }));
+    }
+
+    runLoop();
+    setInterval(runLoop, LOOP);
+  </script>
 </body>
 </html>
